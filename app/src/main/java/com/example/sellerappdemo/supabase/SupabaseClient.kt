@@ -1,4 +1,4 @@
-package com.example.sellerappdemo
+package com.example.sellerappdemo.supabase
 
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest

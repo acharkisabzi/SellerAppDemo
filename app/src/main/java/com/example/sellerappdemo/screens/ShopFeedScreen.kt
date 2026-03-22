@@ -11,18 +11,19 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import com.example.sellerappdemo.R
 import com.example.sellerappdemo.models.ProductModel
-import com.example.sellerappdemo.supabase
+import com.example.sellerappdemo.supabase.supabase
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Order
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,17 +52,19 @@ fun ShopFeedScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("My shop") },
+                title = { Text(stringResource(R.string.title_my_shop)) },
                 actions = {
+                    val signoutDest = "login"
+                    val currentDest = "feed"
                     TextButton(onClick = {
                         scope.launch {
                             supabase.auth.signOut()
                             navController.navigate("login") {
-                                popUpTo("feed") { inclusive = true }
+                                popUpTo(currentDest) { inclusive = true }
                             }
                         }
                     }) {
-                        Text("Sign out")
+                        Text(stringResource(R.string.btn_sign_out))
                     }
                 }
             )
@@ -70,7 +73,7 @@ fun ShopFeedScreen(navController: NavController) {
             FloatingActionButton(
                 onClick = { navController.navigate("add_product") }
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add product")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.desc_add_product))
             }
         }
     ) { innerPadding ->
@@ -92,9 +95,9 @@ fun ShopFeedScreen(navController: NavController) {
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("No products yet", fontSize = 18.sp, fontWeight = FontWeight.Medium)
+                        Text(stringResource(R.string.msg_no_products), fontSize = 18.sp, fontWeight = FontWeight.Medium)
                         Text(
-                            "Tap + to add your first product",
+                            stringResource(R.string.msg_tap_to_add),
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -141,12 +144,12 @@ fun ProductCard(product: ProductModel) {
                     maxLines = 1
                 )
                 Text(
-                    text = "₹${product.price.toInt()}",
+                    text = stringResource(R.string.price_format, product.price.toInt()),
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = if (product.inStock) "In stock" else "Out of stock",
+                    text = if (product.inStock) stringResource(R.string.status_in_stock) else stringResource(R.string.status_out_stock),
                     fontSize = 11.sp,
                     color = if (product.inStock)
                         MaterialTheme.colorScheme.tertiary

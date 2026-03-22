@@ -1,3 +1,32 @@
 <resources>
     <string name="app_name">SellerAppDemo</string>
+    <string name="app_title">LocalMarket</string>
+    <string name="seller_app_subtitle">Seller app</string>
+    <string name="label_shop_name">Shop name</string>
+    <string name="label_area">Area (e.g. Hazratganj)</string>
+    <string name="label_email">Email</string>
+    <string name="label_password">Password</string>
+    <string name="error_generic">Something went wrong</string>
+    <string name="btn_create_account">Create account</string>
+    <string name="btn_sign_in">Sign in</string>
+    <string name="msg_already_have_account">Already have an account? Sign in</string>
+    <string name="msg_new_shop">New shop? Create account</string>
+    <string name="title_new_product">New product</string>
+    <string name="desc_back">Back</string>
+    <string name="msg_pick_photo">Pick a photo first</string>
+    <string name="msg_fill_fields">Fill in all fields</string>
+    <string name="btn_post">Post</string>
+    <string name="desc_product_photo">Product photo</string>
+    <string name="msg_tap_pick_photo">Tap to pick a photo</string>
+    <string name="msg_square_best">Square works best</string>
+    <string name="label_product_name">Product name</string>
+    <string name="label_price">Price (₹)</string>
+    <string name="title_my_shop">My shop</string>
+    <string name="btn_sign_out">Sign out</string>
+    <string name="desc_add_product">Add product</string>
+    <string name="msg_no_products">No products yet</string>
+    <string name="msg_tap_to_add">Tap + to add your first product</string>
+    <string name="status_in_stock">In stock</string>
+    <string name="status_out_stock">Out of stock</string>
+    <string name="price_format">₹%1$d</string>
 </resources>

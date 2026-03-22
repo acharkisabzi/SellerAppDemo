@@ -1,5 +1,6 @@
 package com.example.sellerappdemo.supabase
 
+import com.example.sellerappdemo.BuildConfig
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.auth.Auth

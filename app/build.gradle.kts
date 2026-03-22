@@ -1,4 +1,5 @@
 import java.util.Properties
+android.buildFeatures.buildConfig = true
 val secretsFile: File = rootProject.file("secrets.properties")
 val secrets = Properties()
 if (secretsFile.exists()) secrets.load(secretsFile.inputStream())

@@ -6,14 +6,16 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.sellerappdemo.R
 import com.example.sellerappdemo.models.UserModel
-import com.example.sellerappdemo.supabase
+import com.example.sellerappdemo.supabase.supabase
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.postgrest.postgrest
@@ -31,6 +33,8 @@ fun LoginScreen(navController: NavController) {
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
 
+    val genericError = stringResource(R.string.error_generic)
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -39,12 +43,12 @@ fun LoginScreen(navController: NavController) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "LocalMarket",
+            text = stringResource(R.string.app_title),
             fontSize = 32.sp,
             fontWeight = FontWeight.Bold
         )
         Text(
-            text = "Seller app",
+            text = stringResource(R.string.seller_app_subtitle),
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
@@ -55,14 +59,14 @@ fun LoginScreen(navController: NavController) {
             OutlinedTextField(
                 value = shopNameInput,
                 onValueChange = { shopNameInput = it },
-                label = { Text("Shop name") },
+                label = { Text(stringResource(R.string.label_shop_name)) },
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(12.dp))
             OutlinedTextField(
                 value = areaInput,
                 onValueChange = { areaInput = it },
-                label = { Text("Area (e.g. Hazratganj)") },
+                label = { Text(stringResource(R.string.label_area)) },
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(12.dp))
@@ -71,7 +75,7 @@ fun LoginScreen(navController: NavController) {
         OutlinedTextField(
             value = emailInput,
             onValueChange = { emailInput = it },
-            label = { Text("Email") },
+            label = { Text(stringResource(R.string.label_email)) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             modifier = Modifier.fillMaxWidth()
         )
@@ -80,7 +84,7 @@ fun LoginScreen(navController: NavController) {
         OutlinedTextField(
             value = passwordInput,
             onValueChange = { passwordInput = it },
-            label = { Text("Password") },
+            label = { Text(stringResource(R.string.label_password)) },
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             modifier = Modifier.fillMaxWidth()
@@ -129,7 +133,7 @@ fun LoginScreen(navController: NavController) {
                             popUpTo("login") { inclusive = true }
                         }
                     } catch (e: Exception) {
-                        errorMessage = e.message ?: "Something went wrong"
+                        errorMessage = e.message ?: genericError
                     }
                     isLoading = false
                 }
@@ -143,14 +147,14 @@ fun LoginScreen(navController: NavController) {
                     color = MaterialTheme.colorScheme.onPrimary
                 )
             } else {
-                Text(if (isSignUp) "Create account" else "Sign in")
+                Text(if (isSignUp) stringResource(R.string.btn_create_account) else stringResource(R.string.btn_sign_in))
             }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
         TextButton(onClick = { isSignUp = !isSignUp }) {
-            Text(if (isSignUp) "Already have an account? Sign in" else "New shop? Create account")
+            Text(if (isSignUp) stringResource(R.string.msg_already_have_account) else stringResource(R.string.msg_new_shop))
         }
     }
 }

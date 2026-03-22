@@ -16,11 +16,14 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import com.example.sellerappdemo.R
 import com.example.sellerappdemo.models.ProductModel
-import com.example.sellerappdemo.supabase
+import com.example.sellerappdemo.supabase.supabase
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.storage.storage
@@ -49,21 +52,25 @@ fun AddProductScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("New product") },
+                title = { Text(stringResource(R.string.title_new_product)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.desc_back))
                     }
                 },
                 actions = {
+                    val pickPhotoMsg = stringResource(R.string.msg_pick_photo)
+                    val fillFieldsMsg = stringResource(R.string.msg_fill_fields)
+                    val genericErrorMsg = stringResource(R.string.error_generic)
+                    
                     TextButton(
                         onClick = {
                             if (imageUri == null) {
-                                errorMessage = "Pick a photo first"
+                                errorMessage = pickPhotoMsg
                                 return@TextButton
                             }
                             if (productName.isEmpty() || productPrice.isEmpty()) {
-                                errorMessage = "Fill in all fields"
+                                errorMessage = fillFieldsMsg
                                 return@TextButton
                             }
                             scope.launch {
@@ -109,7 +116,7 @@ fun AddProductScreen(navController: NavController) {
 
                                     navController.popBackStack()
                                 } catch (e: Exception) {
-                                    errorMessage = e.message ?: "Something went wrong"
+                                    errorMessage = e.message ?: genericErrorMsg
                                 }
                                 isLoading = false
                             }
@@ -119,7 +126,7 @@ fun AddProductScreen(navController: NavController) {
                         if (isLoading) {
                             CircularProgressIndicator(modifier = Modifier.size(18.dp))
                         } else {
-                            Text("Post", style = MaterialTheme.typography.titleMedium)
+                            Text(stringResource(R.string.btn_post), style = MaterialTheme.typography.titleMedium)
                         }
                     }
                 }
@@ -143,15 +150,15 @@ fun AddProductScreen(navController: NavController) {
                 if (imageUri != null) {
                     AsyncImage(
                         model = imageUri,
-                        contentDescription = "Product photo",
+                        contentDescription = stringResource(R.string.desc_product_photo),
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
                 } else {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Tap to pick a photo")
+                        Text(stringResource(R.string.msg_tap_pick_photo))
                         Text(
-                            "Square works best",
+                            stringResource(R.string.msg_square_best),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodySmall
                         )
@@ -164,14 +171,14 @@ fun AddProductScreen(navController: NavController) {
                 OutlinedTextField(
                     value = productName,
                     onValueChange = { productName = it },
-                    label = { Text("Product name") },
+                    label = { Text(stringResource(R.string.label_product_name)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 OutlinedTextField(
                     value = productPrice,
                     onValueChange = { productPrice = it },
-                    label = { Text("Price (₹)") },
+                    label = { Text(stringResource(R.string.label_price)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth()
                 )

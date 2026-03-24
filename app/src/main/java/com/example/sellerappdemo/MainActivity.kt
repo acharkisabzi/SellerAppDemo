@@ -4,24 +4,42 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
+import com.example.sellerappdemo.models.ProductModel
 import com.example.sellerappdemo.screens.AddProductScreen
+import com.example.sellerappdemo.screens.EditProductScreen
 import com.example.sellerappdemo.screens.LoginScreen
 import com.example.sellerappdemo.screens.ShopFeedScreen
+import com.example.sellerappdemo.supabase.supabase
+import com.example.sellerappdemo.ui.theme.ADAtSecondary
 import com.example.sellerappdemo.ui.theme.SellerAppDemoTheme
+import io.github.jan.supabase.auth.auth
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // 1. Initialize Supabase with Context
+        com.example.sellerappdemo.supabase.Supabase.init(applicationContext)
+
         enableEdgeToEdge()
         setContent {
             SellerAppDemoTheme {
@@ -35,18 +53,37 @@ class MainActivity : ComponentActivity() {
 fun AppScreen(modifier: Modifier) {
     val navController = rememberNavController()
 
-    NavHost(
-        navController = navController,
-        startDestination = "login"
-    ) {
-        composable(route = "login") {
-            LoginScreen(navController = navController)
+    // 2. Track the Auth State
+    // authenticated = true, notAuthenticated = false, null = still checking
+    var isAuthenticated by remember { mutableStateOf<Boolean?>(null) }
+
+    LaunchedEffect(Unit) {
+        // Check if there is a valid session saved on disk
+        val session = supabase.auth.currentSessionOrNull()
+        isAuthenticated = session != null
+    }
+
+    // 3. Wait until we know the auth status before showing the UI
+    if (isAuthenticated == null) {
+        // Show a simple loading screen so Login doesn't "flash"
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = ADAtSecondary)
         }
-        composable(route = "feed") {
-            ShopFeedScreen(navController = navController)
-        }
-        composable(route = "add_product") {
-            AddProductScreen(navController = navController)
+    } else {
+        NavHost(
+            navController = navController,
+            // 4. Set startDestination based on login status
+            startDestination = if (isAuthenticated == true) "feed" else "login",
+            enterTransition = { fadeIn(animationSpec = tween(700)) },
+            exitTransition = { fadeOut(animationSpec = tween(700)) }
+        ) {
+            composable(route = "login") { LoginScreen(navController = navController) }
+            composable(route = "feed") { ShopFeedScreen(navController = navController) }
+            composable(route = "add_product") { AddProductScreen(navController = navController) }
+            composable<ProductModel> { backStackEntry ->
+                val product: ProductModel = backStackEntry.toRoute<ProductModel>()
+                EditProductScreen(navController = navController, productModel = product)
+            }
         }
     }
 }

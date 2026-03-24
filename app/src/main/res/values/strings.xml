@@ -12,6 +12,8 @@
     <string name="msg_already_have_account">Already have an account? Sign in</string>
     <string name="msg_new_shop">New shop? Create account</string>
     <string name="title_new_product">New product</string>
+    <string name="title_edit_product">Edit product</string>
+    <string name="btn_post_edited">Save changes</string>
     <string name="desc_back">Back</string>
     <string name="msg_pick_photo">Pick a photo first</string>
     <string name="msg_fill_fields">Fill in all fields</string>

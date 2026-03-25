@@ -38,12 +38,12 @@ An Android app for local shop owners to manage their product listings. Built as 
 
 ## Features
 
-- **Sign in / Sign up** — Email and password authentication with persistent session
-- **Shop profile** — Avatar, product count, rating, shop name, and area displayed on the home feed
-- **Product collection** — 2-column grid of all your listed products with prices and stock status
-- **Add product** — Pick a photo from the gallery, enter a name and price, and post instantly
-- **Edit product** — Tap any listing to update its photo, name, or price and save changes
-- **Live backend** — Products appear in the Buyer app the moment they're posted
+- **Sign in / Sign up** - Email and password authentication with persistent session
+- **Shop profile** - Avatar, product count, rating, shop name, and area displayed on the home feed
+- **Product collection** - 2-column grid of all your listed products with prices and stock status
+- **Add product** - Pick a photo from the gallery, enter a name and price, and post instantly
+- **Edit product** - Tap any listing to update its photo, name, or price and save changes
+- **Live backend** - Products appear in the Buyer app the moment they're posted
 
 ## Tech Stack
 
@@ -65,14 +65,14 @@ LoginScreen / ShopFeedScreen / AddProductScreen / EditProductScreen
 ```
 
 - **Authentication** is handled by Supabase Auth with session persistence via `SettingsSessionManager`
-- **Image upload** — photos are picked from the device gallery, read as a byte stream, and uploaded to Supabase Storage; the resulting public URL is saved alongside the product record
-- **Navigation** uses type-safe Compose Navigation — `ProductModel` is passed directly as a route to `EditProductScreen`
+- **Image upload** - photos are picked from the device gallery, read as a byte stream, and uploaded to Supabase Storage; the resulting public URL is saved alongside the product record
+- **Navigation** uses type-safe Compose Navigation - `ProductModel` is passed directly as a route to `EditProductScreen`
 
 ## Setup
 
 ### Prerequisites
 - Android Studio Hedgehog or newer
-- A Supabase project (free tier works fine) — the same project used by BuyerAppDemo
+- A Supabase project (free tier works fine) - the same project used by BuyerAppDemo
 
 ### Supabase schema
 
@@ -115,4 +115,4 @@ You'll also need a **Storage bucket** named `products` with public read access f
 
 ## Related
 
-- **[BuyerAppDemo](https://github.com/acharkisabzi/BuyerAppDemo)** — the companion buyer-side app where customers browse and view products listed by sellers
+- **[BuyerAppDemo](https://github.com/acharkisabzi/BuyerAppDemo)** - the companion buyer-side app where customers browse and view products listed by sellers

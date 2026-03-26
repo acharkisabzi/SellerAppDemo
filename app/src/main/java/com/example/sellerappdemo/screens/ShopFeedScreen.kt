@@ -136,8 +136,8 @@ fun ShopFeedScreen(navController: NavController) {
 
             // ── Collection Grid ───────────────────────────────────────────────
             CollectionSection(
-                products = products,
-                isLoading = isLoading,
+                products = feedState.products,
+                isLoading = feedState.isLoading,
                 navController = navController
             )
 

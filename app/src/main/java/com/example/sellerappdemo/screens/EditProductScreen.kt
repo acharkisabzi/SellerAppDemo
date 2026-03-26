@@ -73,64 +73,64 @@ fun EditProductScreen(
     val fillFieldsMsg = stringResource(R.string.msg_fill_fields)
     val genericErrorMsg = stringResource(R.string.error_generic)
 
-        Scaffold(containerColor = ADAtSurface, topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "SellerAppDemo",
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 21.sp,
-                        letterSpacing = (-0.5).sp,
-                        color = ADAtOnSurface
-                    )
-                }, navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.desc_back),
-                            tint = ADAtOnSurface
-                        )
-                    }
-                }, colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = ADAtSurfaceLowest.copy(alpha = 0.92f)
+    Scaffold(containerColor = ADAtSurface, topBar = {
+        TopAppBar(
+            title = {
+                Text(
+                    text = "SellerAppDemo",
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 21.sp,
+                    letterSpacing = (-0.5).sp,
+                    color = ADAtOnSurface
                 )
-            )
-        }, bottomBar = {
-            // Reuse shared nav component from ShopFeedScreen.kt (same package)
-            AtelierBottomNav(currentRoute = "add_product", onFeedClick = {
-                navController.navigate("feed") {
-                    popUpTo("feed") { inclusive = true }
+            }, navigationIcon = {
+                IconButton(onClick = { navController.popBackStack() }) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.desc_back),
+                        tint = ADAtOnSurface
+                    )
                 }
-            }, onAddClick = { /* already on this screen */ })
-        }) { paddingValues ->
+            }, colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = ADAtSurfaceLowest.copy(alpha = 0.92f)
+            )
+        )
+    }, bottomBar = {
+        // Reuse shared nav component from ShopFeedScreen.kt (same package)
+        AtelierBottomNav(currentRoute = "add_product", onFeedClick = {
+            navController.navigate("feed") {
+                popUpTo("feed") { inclusive = true }
+            }
+        }, onAddClick = { /* already on this screen */ })
+    }) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
+        ) {
+            // ── Editorial Header ──────────────────────────────────────────────
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .verticalScroll(rememberScrollState())
+                    .fillMaxWidth()
+                    .padding(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 4.dp)
             ) {
-                // ── Editorial Header ──────────────────────────────────────────────
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 4.dp)
-                ) {
-                    Text(
-                        text = "EDIT LISTING",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = ADAtSecondary,
-                        letterSpacing = 2.sp
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = stringResource(R.string.title_edit_product),
-                        fontSize = 32.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        letterSpacing = (-0.5).sp,
-                        color = ADAtOnSurface
-                    )
-                }
+                Text(
+                    text = "EDIT LISTING",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = ADAtSecondary,
+                    letterSpacing = 2.sp
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = stringResource(R.string.title_edit_product),
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    letterSpacing = (-0.5).sp,
+                    color = ADAtOnSurface
+                )
+            }
 
                 Spacer(Modifier.height(20.dp))
 

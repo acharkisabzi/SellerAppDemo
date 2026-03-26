@@ -50,6 +50,7 @@ An Android app for local shop owners to manage their product listings. Built as 
 | Layer | Technology |
 |---|---|
 | UI | Jetpack Compose + Material 3 |
+| Architecture | MVVM (ViewModel + StateFlow) |
 | Navigation | Compose Navigation with type-safe routes |
 | Backend | Supabase (Auth, Postgrest, Storage) |
 | Image loading | Coil 3 |
@@ -57,16 +58,23 @@ An Android app for local shop owners to manage their product listings. Built as 
 
 ## Architecture
 
+The app follows MVVM with a unidirectional data flow pattern:
+
 ```
 LoginScreen / ShopFeedScreen / AddProductScreen / EditProductScreen
+        │
+        ▼
+  AuthViewModel / ShopFeedViewModel / ProductActionViewModel
         │
         ▼
    Supabase client (Auth + Postgrest + Storage)
 ```
 
-- **Authentication** is handled by Supabase Auth with session persistence via `SettingsSessionManager`
+- **UI state** is modelled as immutable data classes (`AuthState`, `ShopFeedState`, `ProductActionState`)
+- **StateFlow** exposes state from ViewModels; screens collect it with `collectAsState()`
+- **Navigation** uses Compose Navigation - `ProductModel` is passed as a type-safe route object directly to `EditProductScreen`
 - **Image upload** - photos are picked from the device gallery, read as a byte stream, and uploaded to Supabase Storage; the resulting public URL is saved alongside the product record
-- **Navigation** uses type-safe Compose Navigation - `ProductModel` is passed directly as a route to `EditProductScreen`
+- **Session persistence** is handled by `SettingsSessionManager` so users stay logged in across app restarts
 
 ## Setup
 

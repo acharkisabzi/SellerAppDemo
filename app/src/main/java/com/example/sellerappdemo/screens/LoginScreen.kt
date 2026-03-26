@@ -33,7 +33,13 @@ fun LoginScreen(navController: NavController) {
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
 
-    val genericError = stringResource(R.string.error_generic)
+    LaunchedEffect(state.isAuthenticated) {
+        if (state.isAuthenticated == true) {
+            navController.navigate("feed") {
+                popUpTo("login") { inclusive = true }
+            }
+        }
+    }
 
     Column(
         modifier = Modifier

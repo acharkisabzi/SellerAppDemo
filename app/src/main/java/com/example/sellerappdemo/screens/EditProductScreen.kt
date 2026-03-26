@@ -48,8 +48,12 @@ import okhttp3.Request
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditProductScreen(navController: NavController, productModel: ProductModel) {
-    val scope = rememberCoroutineScope()
+fun EditProductScreen(
+    navController: NavController,
+    productModel: ProductModel,
+    viewModel: ProductActionViewModel = viewModel()
+) {
+    val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val productId = productModel.id
     var imageUri by remember { mutableStateOf<Uri?>(productModel.imageUrl.toUri()) }

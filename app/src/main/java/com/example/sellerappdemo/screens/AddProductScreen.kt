@@ -1,6 +1,5 @@
 package com.example.sellerappdemo.screens
 
-import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -8,7 +7,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -18,50 +16,42 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.example.sellerappdemo.R
-import com.example.sellerappdemo.models.ProductModel
-import com.example.sellerappdemo.supabase.supabase
-import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.postgrest.postgrest
-import io.github.jan.supabase.storage.storage
-import kotlinx.coroutines.launch
-import java.io.InputStream
+import com.example.sellerappdemo.ViewModels.ProductActionViewModel
 import com.example.sellerappdemo.ui.theme.*
+import com.example.sellerappdemo.ui.theme.widgets.AtelierFormField
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddProductScreen(navController: NavController) {
-    val scope = rememberCoroutineScope()
+fun AddProductScreen(
+    navController: NavController,
+    viewModel: ProductActionViewModel = viewModel()
+) {
+    val state by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(state.isSuccess) {
+        if (state.isSuccess) {
+            navController.popBackStack()
+        }
+    }
     val context = LocalContext.current
 
-    var imageUri by remember { mutableStateOf<Uri?>(null) }
-    var productName by remember { mutableStateOf("") }
-    var productPrice by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf("") }
-
-    val userId = supabase.auth.currentUserOrNull()?.id ?: ""
 
     // Image picker launcher — preserved from original
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
-    ) { uri -> imageUri = uri }
-
-    val pickPhotoMsg   = stringResource(R.string.msg_pick_photo)
-    val fillFieldsMsg  = stringResource(R.string.msg_fill_fields)
-    val genericErrorMsg = stringResource(R.string.error_generic)
+    ) { uri -> viewModel.updateImageUri(uri) }
 
     Scaffold(
         containerColor = ADAtSurface,
@@ -145,9 +135,9 @@ fun AddProductScreen(navController: NavController) {
                     .clickable { imagePickerLauncher.launch("image/*") },
                 contentAlignment = Alignment.Center
             ) {
-                if (imageUri != null) {
+                if (state.imageUri != null) {
                     AsyncImage(
-                        model = imageUri,
+                        model = state.imageUri,
                         contentDescription = stringResource(R.string.desc_product_photo),
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
@@ -213,8 +203,8 @@ fun AddProductScreen(navController: NavController) {
             ) {
                 // Product Name
                 AtelierFormField(
-                    value = productName,
-                    onValueChange = { productName = it },
+                    value = state.productName,
+                    onValueChange = { viewModel.updateProductName(it) },
                     label = stringResource(R.string.label_product_name),
                     keyboardType = KeyboardType.Text
                 )
@@ -228,7 +218,7 @@ fun AddProductScreen(navController: NavController) {
                 )
 
                 // Error message with styled container
-                if (errorMessage.isNotEmpty()) {
+                if (state.errorMessage.isNotEmpty()) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -237,7 +227,7 @@ fun AddProductScreen(navController: NavController) {
                             .padding(horizontal = 16.dp, vertical = 12.dp)
                     ) {
                         Text(
-                            text = errorMessage,
+                            text = state.errorMessage,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium,
                             color = ADAtError
@@ -250,62 +240,9 @@ fun AddProductScreen(navController: NavController) {
                 // Post / Save Button — full-width, pill-shaped, violet
                 Button(
                     onClick = {
-                        // ── Validation (preserved from original) ──────────────
-                        if (imageUri == null) {
-                            errorMessage = pickPhotoMsg
-                            return@Button
-                        }
-                        if (productName.isEmpty() || productPrice.isEmpty()) {
-                            errorMessage = fillFieldsMsg
-                            return@Button
-                        }
-                        // ── Upload & Save (fully preserved from original) ──────
-                        scope.launch {
-                            isLoading = true
-                            errorMessage = ""
-                            try {
-                                // 1. Read image bytes
-                                val inputStream: InputStream =
-                                    context.contentResolver.openInputStream(imageUri!!)!!
-                                val imageBytes = inputStream.readBytes()
-                                inputStream.close()
-
-                                // 2. Upload to Supabase Storage
-                                val fileName = "$userId/${System.currentTimeMillis()}.jpg"
-                                supabase.storage["products"].upload(
-                                    path = fileName,
-                                    data = imageBytes,
-                                ) { upsert = false }
-
-                                // 3. Get public URL
-                                val imageUrl = supabase.storage["products"].publicUrl(fileName)
-
-                                // 4. Get shop info
-                                val userDoc = supabase.postgrest["users"]
-                                    .select { filter { eq("id", userId) } }
-                                    .decodeSingle<Map<String, String>>()
-
-                                // 5. Save product to database
-                                supabase.postgrest["products"].insert(
-                                    ProductModel(
-                                        id = "",
-                                        shopId = userId,
-                                        shopName = userDoc["shop_name"] ?: "",
-                                        area = userDoc["area"] ?: "",
-                                        name = productName,
-                                        price = productPrice.toDouble(),
-                                        imageUrl = imageUrl,
-                                        inStock = true
-                                    )
-                                )
-                                navController.popBackStack()
-                            } catch (e: Exception) {
-                                errorMessage = e.message ?: genericErrorMsg
-                            }
-                            isLoading = false
-                        }
+                        viewModel.postProduct(context = context, update = false)
                     },
-                    enabled = !isLoading,
+                    enabled = !state.isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
@@ -321,7 +258,7 @@ fun AddProductScreen(navController: NavController) {
                         pressedElevation = 0.dp
                     )
                 ) {
-                    if (isLoading) {
+                    if (state.isLoading) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(22.dp),
                             color = ADAtOnSecondary,
@@ -340,50 +277,5 @@ fun AddProductScreen(navController: NavController) {
                 Spacer(Modifier.height(8.dp))
             }
         }
-    }
-}
-
-// ─── Atelier Form Field ───────────────────────────────────────────────────────
-// Borderless text field following the "Ghost Border" / surface-layering rule
-@Composable
-private fun AtelierFormField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    keyboardType: KeyboardType = KeyboardType.Text
-) {
-    Column {
-        Text(
-            text = label,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-            color = ADAtOnSurfaceVar,
-            letterSpacing = 0.4.sp,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-        TextField(
-            value = value,
-            onValueChange = onValueChange,
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-            textStyle = TextStyle(
-                fontWeight = FontWeight.Medium,
-                fontSize = 16.sp,
-                color = ADAtOnSurface
-            ),
-            singleLine = true,
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = ADAtSurfaceLowest,
-                unfocusedContainerColor = ADAtSurfaceLowest,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                focusedTextColor = ADAtOnSurface,
-                unfocusedTextColor = ADAtOnSurface,
-                cursorColor = ADAtSecondary,
-                focusedLabelColor = ADAtSecondary,
-                unfocusedLabelColor = ADAtOnSurfaceVar
-            )
-        )
     }
 }

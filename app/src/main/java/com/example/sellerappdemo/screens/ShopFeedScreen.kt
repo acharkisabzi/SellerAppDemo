@@ -26,25 +26,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.example.sellerappdemo.R
+import com.example.sellerappdemo.ViewModels.AuthViewModel
+import com.example.sellerappdemo.ViewModels.ShopFeedViewModel
 import com.example.sellerappdemo.models.ProductModel
-import com.example.sellerappdemo.supabase.supabase
 import com.example.sellerappdemo.ui.theme.*
-import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.postgrest.postgrest
-import io.github.jan.supabase.postgrest.query.Order
-import kotlinx.coroutines.launch
 
 
 @Composable
-fun ShopFeedScreen(navController: NavController) {
-    val scope = rememberCoroutineScope()
-    var products by remember { mutableStateOf<List<ProductModel>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
-    var shopName by remember { mutableStateOf("") }
-    var shopArea by remember { mutableStateOf("") }
+fun ShopFeedScreen(
+    navController: NavController,
+    authViewModel: AuthViewModel = viewModel(),
+    productViewModel: ShopFeedViewModel = viewModel()
+) {
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -56,18 +56,16 @@ fun ShopFeedScreen(navController: NavController) {
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
+    }
+    val authState by authViewModel.uiState.collectAsState()
+    val feedState by productViewModel.uiState.collectAsState()
 
-        try {
-            val result = supabase.postgrest["products"]
-                .select {
-                    filter { eq("shop_id", userId) }
-                    order("created_at", Order.DESCENDING)
-                }
-            products = result.decodeList<ProductModel>()
-        } catch (e: Exception) {
-            e.printStackTrace()
+    LaunchedEffect(authState.isAuthenticated) {
+        if (authState.isAuthenticated == false) {
+            navController.navigate("login") {
+                popUpTo("feed") { inclusive = true }
+            }
         }
-        isLoading = false
     }
 
     Scaffold(
@@ -77,7 +75,7 @@ fun ShopFeedScreen(navController: NavController) {
             AtelierBottomNav(
                 currentRoute = "feed",
                 onFeedClick = { /* already here */ },
-                onAddClick  = { navController.navigate("add_product") }
+                onAddClick = { navController.navigate("add_product") }
             )
         }
     ) { innerPadding ->
@@ -107,12 +105,7 @@ fun ShopFeedScreen(navController: NavController) {
                 // Subtle sign-out link
                 TextButton(
                     onClick = {
-                        scope.launch {
-                            supabase.auth.signOut()
-                            navController.navigate("login") {
-                                popUpTo("feed") { inclusive = true }
-                            }
-                        }
+                        authViewModel.signOut()
                     },
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
                 ) {
@@ -127,9 +120,9 @@ fun ShopFeedScreen(navController: NavController) {
 
             // ── Social Profile Header ─────────────────────────────────────────
             ProfileHeader(
-                shopName = shopName,
-                shopArea = shopArea,
-                productCount = products.size
+                shopName = feedState.shopName,
+                shopArea = feedState.shopArea,
+                productCount = feedState.products.size
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -395,15 +388,16 @@ private fun AtelierProductCard(
                 ambientColor = DOnSurface.copy(alpha = 0.04f),
                 spotColor = DOnSurface.copy(alpha = 0.04f)
             )
-           .clickable(
+            .clickable(
                 interactionSource = MutableInteractionSource(),
-        indication = null,
-        enabled = true,
-        onClickLabel = "Edit ${product.name}",
-        onClick = { navController.navigate(product) }
-    ),
+                indication = null,
+                enabled = true,
+                onClickLabel = "Edit ${product.name}",
+                onClick = { navController.navigate(product) }
+            ),
     ) {
         // Product image — 1:1 aspect ratio
+
         AsyncImage(
             model = product.imageUrl,
             contentDescription = product.name,
@@ -413,6 +407,7 @@ private fun AtelierProductCard(
                 .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
             contentScale = ContentScale.Crop
         )
+
 
         // Product info
         Column(modifier = Modifier.padding(12.dp)) {

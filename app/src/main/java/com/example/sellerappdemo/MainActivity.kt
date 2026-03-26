@@ -50,7 +50,8 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun AppScreen(modifier: Modifier) {
+fun AppScreen(modifier: Modifier, viewModel: AuthViewModel = viewModel()) {
+    val state by viewModel.uiState.collectAsState()
     val navController = rememberNavController()
 
     // 2. Track the Auth State

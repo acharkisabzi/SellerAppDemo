@@ -46,18 +46,15 @@ fun ShopFeedScreen(navController: NavController) {
     var shopName by remember { mutableStateOf("") }
     var shopArea by remember { mutableStateOf("") }
 
-    val userId = supabase.auth.currentUserOrNull()?.id ?: ""
-
-    LaunchedEffect(Unit) {
-        try {
-            // Fetch shop profile
-            val userDoc = supabase.postgrest["users"]
-                .select { filter { eq("id", userId) } }
-                .decodeSingle<Map<String, String>>()
-            shopName = userDoc["shop_name"] ?: "My Shop"
-            shopArea = userDoc["area"] ?: ""
-        } catch (_: Exception) {
-            shopName = "My Shop"
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                productViewModel.loadShopAndProducts()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
         }
 
         try {

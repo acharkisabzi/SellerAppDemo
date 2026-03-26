@@ -221,8 +221,8 @@ fun AddProductScreen(navController: NavController) {
 
                 // Price
                 AtelierFormField(
-                    value = productPrice,
-                    onValueChange = { productPrice = it },
+                    value = if (state.productPrice == 0.0) "" else state.productPrice.toString(),
+                    onValueChange = { viewModel.updateProductPrice(it.toDoubleOrNull() ?: 0.0) },
                     label = stringResource(R.string.label_price),
                     keyboardType = KeyboardType.Number
                 )

@@ -9,7 +9,7 @@ data class ProductModel(
     @SerialName("shop_id") val shopId: String = "",
     @SerialName("shop_name") val shopName: String = "",
     val area: String = "",
-    val name: String = "",
+    @SerialName("product_name")val productName: String = "",
     val price: Double = 0.0,
     @SerialName("image_url") val imageUrl: String = "",
     @SerialName("in_stock") val inStock: Boolean = true

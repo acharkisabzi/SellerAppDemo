@@ -32,4 +32,8 @@
     <string name="status_out_stock">Out of stock</string>
     <string name="price_format">₹%1$d</string>
     <string name="image_bytes_empty">image bytes empty</string>
+    <string name="login_title">LocalSeller</string>
+    <string name="login_subtitle">Seller App</string>
+    <string name="label_name">Your Name</string>
+    <string name="msg_first_time">New shop? Create account</string>
 </resources>

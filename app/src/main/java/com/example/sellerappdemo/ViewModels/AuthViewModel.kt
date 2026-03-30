@@ -1,6 +1,7 @@
 package com.example.sellerappdemo.ViewModels
 
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sellerappdemo.ViewModels.data.AuthState
@@ -10,6 +11,7 @@ import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.auth.user.UserSession
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.rpc
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -26,67 +28,44 @@ class AuthViewModel : ViewModel() {
         updateAuthenticated(currentSession != null)
     }
 
+    fun updateName(name: String) {
+        _uiState.update { it.copy(nameInput = name) }
+    }
 
     fun updateEmail(email: String) {
-        _uiState.update { currentState ->
-            currentState.copy(
-                emailInput = email
-            )
-        }
+        _uiState.update { it.copy(emailInput = email) }
     }
 
     fun updatePassword(password: String) {
-        _uiState.update { currentState ->
-            currentState.copy(
-                passwordInput = password
-            )
-        }
+        _uiState.update { it.copy(passwordInput = password) }
     }
 
     fun updateArea(area: String) {
-        _uiState.update { currentState ->
-            currentState.copy(
-                areaInput = area
-            )
-        }
+        _uiState.update { it.copy(areaInput = area) }
     }
 
-    fun updateShopName(name: String) {
-        _uiState.update { currentState ->
-            currentState.copy(
-                shopNameInput = name
-            )
-        }
+    fun updateUserName(userName: String) {
+        _uiState.update { it.copy(usernameInput = userName) }
     }
 
     fun updateLoading(isLoading: Boolean) {
-        _uiState.update { currentState ->
-            currentState.copy(
-                isLoading = isLoading
-            )
-        }
+        _uiState.update { it.copy(isLoading = isLoading) }
     }
 
     fun updateSignUp(isSignUp: Boolean) {
-        _uiState.update { currentState ->
-            currentState.copy(
-                isSignUp = isSignUp
-            )
-        }
+        _uiState.update { it.copy(isSignUp = isSignUp) }
     }
 
     fun updateAuthenticated(isAuthenticated: Boolean) {
-        _uiState.update { currentState ->
-            currentState.copy(
-                isAuthenticated = isAuthenticated
-            )
-        }
+        _uiState.update { it.copy(isAuthenticated = isAuthenticated) }
     }
 
     fun updateSession(session: UserSession?) {
-        _uiState.update { currentState ->
-            currentState.copy(session = session)
-        }
+        _uiState.update { it.copy(session = session) }
+    }
+
+    fun updateError(error: String) {
+        _uiState.update { it.copy(errorMessage = error) }
     }
 
     fun signOut() {
@@ -115,48 +94,63 @@ class AuthViewModel : ViewModel() {
 
     fun authorize() {
         viewModelScope.launch {
-            _uiState.update { currentState ->
-                currentState.copy(
-                    isLoading = true,
-                    errorMessage = ""
-                )
-            }
+            updateLoading(true)
+            updateError("")
             try {
+                val exists = checkUserExists(_uiState.value.emailInput)
                 if (_uiState.value.isSignUp) {
                     // Sign up
-                    val result = supabase.auth.signUpWith(Email) {
-                        email = _uiState.value.emailInput
-                        password = _uiState.value.passwordInput
+                    if (!exists) {
+                        signUp(_uiState.value.emailInput, _uiState.value.passwordInput)
+                    } else {
+                        updateError("User already exists")
+                        return@launch
                     }
-                    // Save shop profile
-                    supabase.postgrest["users"].insert(
-                        UserModel(
-                            id = result?.id,
-                            shopName = _uiState.value.shopNameInput,
-                            area = _uiState.value.areaInput,
-                            role = "shop"
-                        )
-                    )
                 } else {
                     // Sign in
-                    supabase.auth.signInWith(Email) {
-                        email = _uiState.value.emailInput
-                        password = _uiState.value.passwordInput
-                    }
+                    signIn(_uiState.value.emailInput, _uiState.value.passwordInput)
                 }
                 val currentSession = supabase.auth.currentSessionOrNull()
                 updateSession(currentSession)
                 updateAuthenticated(currentSession != null)
             } catch (e: Exception) {
-                _uiState.update { currentState ->
-                    currentState.copy(
-                        errorMessage = e.message ?: _uiState.value.genericError
-                    )
-                }
-
+                Log.d("AuthViewModel", e.toString())
+                updateError("Error signing in")
             } finally {
                 updateLoading(false)
             }
         }
+    }
+
+    private suspend fun checkUserExists(email: String): Boolean {
+        return supabase.postgrest.rpc(
+            function = "check_user_exists",
+            parameters = mapOf("email_input" to email)
+        ).decodeAs<Boolean>()
+    }
+
+    private suspend fun signIn(emailIn: String, passwordIn: String) {
+        supabase.auth.signInWith(Email) {
+            email = emailIn
+            password = passwordIn
+        }
+    }
+
+    private suspend fun signUp(emailIn: String, passwordIn: String) {
+        val result = supabase.auth.signUpWith(Email) {
+            email = emailIn
+            password = passwordIn
+        }
+        supabase.postgrest["users"].insert(
+            UserModel(
+                id = result?.id,
+                name = _uiState.value.nameInput,
+                username = _uiState.value.usernameInput,
+                area = _uiState.value.areaInput,
+                email = _uiState.value.emailInput,
+                phone = _uiState.value.phoneInput,
+                isShop = true
+            )
+        )
     }
 }

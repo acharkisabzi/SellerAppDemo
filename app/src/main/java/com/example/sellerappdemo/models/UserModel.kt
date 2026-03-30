@@ -6,7 +6,10 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class UserModel(
     val id: String? = "",
-    @SerialName("shop_name") val shopName: String = "",
+    val username: String = "",
+    val name: String = "",
+    val email: String = "",
+    val phone: String = "",
     val area: String = "",
-    val role: String = "shop"
+    @SerialName("is_shop") val isShop: Boolean = false
 )

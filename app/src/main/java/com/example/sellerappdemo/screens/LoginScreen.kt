@@ -7,7 +7,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -18,45 +17,47 @@ import com.example.sellerappdemo.R
 import com.example.sellerappdemo.ViewModels.AuthViewModel
 
 
+
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun LoginScreen(navController: NavController, viewModel: AuthViewModel = viewModel()) {
+fun LoginScreen(navController: NavController) {
+    val authViewModel: AuthViewModel = viewModel()
+    val authUiState by authViewModel.uiState.collectAsState()
 
-    val state by viewModel.uiState.collectAsState()
-
-    LaunchedEffect(state.isAuthenticated) {
-        if (state.isAuthenticated == true) {
-            navController.navigate("feed") {
-                popUpTo("login") { inclusive = true }
-            }
+    LaunchedEffect(authUiState.isAuthenticated) {
+        if (authUiState.isAuthenticated == true) {
+            navController.navigate("feed") { popUpTo("login") { inclusive = true } }
         }
     }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .padding(24.dp)
+            .imeNestedScroll(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = stringResource(R.string.app_title),
-            fontSize = 32.sp,
-            fontWeight = FontWeight.Bold
+            text = stringResource(R.string.login_title),
+            style = MaterialTheme.typography.displayLarge
         )
         Text(
-            text = stringResource(R.string.seller_app_subtitle),
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            text = stringResource(R.string.login_subtitle),
+            style = MaterialTheme.typography.headlineSmall
+
         )
 
         Spacer(modifier = Modifier.height(40.dp))
 
         // Extra fields for sign up
-        if (state.isSignUp) {
+        if (authUiState.isSignUp) {
             OutlinedTextField(
-                value = state.shopNameInput,
-                onValueChange = { viewModel.updateShopName(it) },
+                value = authUiState.nameInput,
+                onValueChange = { authViewModel.updateName(it) },
                 label = { Text(stringResource(R.string.label_shop_name)) },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !authUiState.isLoading
             )
             Spacer(modifier = Modifier.height(12.dp))
             OutlinedTextField(
@@ -68,37 +69,40 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel = viewMod
             )
             Spacer(modifier = Modifier.height(12.dp))
             OutlinedTextField(
-                value = state.areaInput,
-                onValueChange = { viewModel.updateArea(it) },
+                value = authUiState.areaInput,
+                onValueChange = { authViewModel.updateArea(it)},
                 label = { Text(stringResource(R.string.label_area)) },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !authUiState.isLoading
             )
             Spacer(modifier = Modifier.height(12.dp))
         }
 
         OutlinedTextField(
-            value = state.emailInput,
-            onValueChange = { viewModel.updateEmail(it) },
+            value = authUiState.emailInput,
+            onValueChange = {authViewModel.updateEmail(it)},
             label = { Text(stringResource(R.string.label_email)) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !authUiState.isLoading
         )
-        Spacer(modifier = Modifier.height(12.dp))
+
 
         OutlinedTextField(
-            value = state.passwordInput,
-            onValueChange = { viewModel.updatePassword(it) },
+            value = authUiState.passwordInput,
+            onValueChange = { authViewModel.updatePassword(it)},
             label = { Text(stringResource(R.string.label_password)) },
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !authUiState.isLoading
         )
         Spacer(modifier = Modifier.height(8.dp))
 
         // Error message
-        if (state.errorMessage.isNotEmpty()) {
+        if (authUiState.errorMessage.isNotEmpty()) {
             Text(
-                text = state.errorMessage,
+                text = authUiState.errorMessage,
                 color = MaterialTheme.colorScheme.error,
                 fontSize = 13.sp
             )
@@ -107,33 +111,28 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel = viewMod
 
         Button(
             onClick = {
-                viewModel.authorize()
+                authViewModel.authorize()
             },
             modifier = Modifier.fillMaxWidth(),
-            enabled = !state.isLoading
+            enabled = !authUiState.isLoading
         ) {
-            if (state.isLoading) {
+            if (authUiState.isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(20.dp),
                     color = MaterialTheme.colorScheme.onPrimary
                 )
             } else {
-                Text(
-                    if (state.isSignUp) stringResource(R.string.btn_create_account) else stringResource(
-                        R.string.btn_sign_in
-                    )
-                )
+                Text(if (authUiState.isSignUp) stringResource(R.string.btn_create_account) else stringResource(R.string.btn_sign_in),
+                    style = MaterialTheme.typography.labelLarge)
             }
         }
-
         Spacer(modifier = Modifier.height(12.dp))
 
-        TextButton(onClick = { viewModel.updateSignUp(!state.isSignUp) }) {
-            Text(
-                if (state.isSignUp) stringResource(R.string.msg_already_have_account) else stringResource(
-                    R.string.msg_new_shop
-                )
-            )
+        TextButton(
+            onClick = {authViewModel.updateSignUp(!authUiState.isSignUp)},
+            enabled = !authUiState.isLoading
+        ) {
+            Text(if (authUiState.isSignUp) stringResource(R.string.msg_already_have_account) else stringResource(R.string.msg_first_time))
         }
     }
 }

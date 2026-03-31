@@ -3,6 +3,7 @@ package com.example.sellerappdemo.ViewModels.data
 
 
 import com.example.sellerappdemo.models.ProductModel
+import com.example.sellerappdemo.models.UserModel
 
 
 data class ShopFeedState(

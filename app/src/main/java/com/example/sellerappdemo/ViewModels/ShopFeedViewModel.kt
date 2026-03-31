@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sellerappdemo.ViewModels.data.ShopFeedState
 import com.example.sellerappdemo.models.ProductModel
+import com.example.sellerappdemo.models.UserModel
 import com.example.sellerappdemo.supabase.supabase
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
@@ -25,12 +26,10 @@ class ShopFeedViewModel : ViewModel() {
     fun loadShopAndProducts() {
         viewModelScope.launch {
             try {
-                // Fetch shop profile
-                val userDoc = supabase.postgrest["users"]
-                    .select { filter { eq("id", _uiState.value.userId) } }
-                    .decodeSingle<Map<String, String>>()
-                updateShopName(userDoc["shop_name"] ?: "My Shop")
-                updateShopArea(userDoc["area"] ?: "")
+                val shop = supabase.postgrest["users"]
+                    .select { filter { eq("id", _uiState.value.shop.id.toString()) } }
+                    .decodeSingle<UserModel>()
+                updateShop(shop)
             } catch (_: Exception) {
                 updateShopName("My Shop")
             }
@@ -38,7 +37,7 @@ class ShopFeedViewModel : ViewModel() {
             try {
                 val result = supabase.postgrest["products"]
                     .select {
-                        filter { eq("shop_id", _uiState.value.userId) }
+                        filter { eq("shop_id", _uiState.value.shop.id.toString()) }
                         order("created_at", Order.DESCENDING)
                     }
                 updateProducts(result.decodeList<ProductModel>())
@@ -59,19 +58,11 @@ class ShopFeedViewModel : ViewModel() {
     }
 
     fun updateShopName(shopName: String) {
-        _uiState.update { currentState ->
-            currentState.copy(
-                shopName = shopName
-            )
-        }
+        _uiState.update { it.copy(shop = it.shop.copy(name = shopName)) }
     }
 
-    fun updateShopArea(shopArea: String) {
-        _uiState.update { currentState ->
-            currentState.copy(
-                shopArea = shopArea
-            )
-        }
+    fun updateShopArea(area: String) {
+        _uiState.update { it.copy(shop = it.shop.copy(area = area)) }
     }
 
     fun updateLoading(isLoading: Boolean) {
@@ -82,11 +73,11 @@ class ShopFeedViewModel : ViewModel() {
         }
     }
 
-    fun updateUserId(userId: String) {
-        _uiState.update { currentState ->
-            currentState.copy(
-                userId = userId
-            )
-        }
+    fun updateUserId(id: String) {
+        _uiState.update { it.copy(shop = it.shop.copy(id = id)) }
+    }
+
+    fun updateShop(shop: UserModel) {
+        _uiState.update { it.copy(shop = shop) }
     }
 }

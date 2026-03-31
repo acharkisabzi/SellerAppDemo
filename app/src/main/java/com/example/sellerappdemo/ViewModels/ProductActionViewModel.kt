@@ -2,14 +2,17 @@ package com.example.sellerappdemo.ViewModels
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sellerappdemo.ViewModels.data.ProductActionState
 import com.example.sellerappdemo.models.ProductModel
+import com.example.sellerappdemo.models.UserModel
 import com.example.sellerappdemo.supabase.supabase
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.storage.storage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,35 +46,25 @@ class ProductActionViewModel : ViewModel() {
     }
 
     fun updateImageUrl(imageUrl: String) {
-        _uiState.update { currentState ->
-            currentState.copy(
-                imageUrl = imageUrl
-            )
-        }
+        _uiState.update { it.copy(product = it.product.copy(imageUrl = imageUrl)) }
     }
 
+    // sets URI on screen load without marking image as changed
+    fun initImageUri(imageUri: Uri?) {
+        _uiState.update { it.copy(imageUri = imageUri) }
+    }
+
+    // user picked a new image — marks as changed so it gets re-uploaded
     fun updateImageUri(imageUri: Uri?) {
-        _uiState.update { currentState ->
-            currentState.copy(
-                imageUri = imageUri
-            )
-        }
+        _uiState.update { it.copy(imageChanged = true, imageUri = imageUri) }
     }
 
     fun updateProductName(productName: String) {
-        _uiState.update { currentState ->
-            currentState.copy(
-                productName = productName
-            )
-        }
+        _uiState.update{it.copy(product = it.product.copy(productName = productName))}
     }
 
     fun updateProductPrice(productPrice: Double?) {
-        _uiState.update { currentState ->
-            currentState.copy(
-                productPrice = productPrice
-            )
-        }
+        _uiState.update{it.copy(product = it.product.copy(price = productPrice ?: 0.0))}
     }
 
     fun updateLoading(isLoading: Boolean) {
@@ -124,11 +117,11 @@ class ProductActionViewModel : ViewModel() {
             updateErrorMessage("Pick a photo first")
             return
         }
-        if (_uiState.value.productName.isEmpty() || _uiState.value.productPrice!! <= 0.0) {
+        if (_uiState.value.product.productName.isEmpty() || _uiState.value.product.price <= 0.0) {
             updateErrorMessage("Fill in all fields")
             return
         }
-        // ── Upload & Save (fully preserved from original) ──────
+
         viewModelScope.launch {
             updateLoading(true)
             updateErrorMessage("")
@@ -165,38 +158,44 @@ class ProductActionViewModel : ViewModel() {
                     _uiState.value.product.imageUrl
                 }
                 // 4. Get shop info
-                val userDoc = supabase.postgrest["users"].select {
+                val shop = supabase.postgrest["users"].select {
                     filter {
                         eq(
                             "id",
                             _uiState.value.userId
                         )
                     }
-                }.decodeSingle<Map<String, String>>()
+                }.decodeSingle<UserModel>()
 
                 // 5. Save product to database
                 if (update) {
-                    supabase.postgrest["products"].upsert(
+                    val productId = _uiState.value.product.id
+                    if (productId.isNullOrEmpty()) {
+                        updateErrorMessage("Product ID missing")
+                        return@launch
+                    }
+                    Log.d("ProductUpdate", "Updating product id: $productId with imageUrl: $publicUrl")
+                    supabase.postgrest["products"].update(
                         ProductModel(
-                            id = _uiState.value.product.id,
-                            shopId = _uiState.value.userId,
-                            shopName = userDoc["shop_name"] ?: "",
-                            area = userDoc["area"] ?: "",
-                            name = _uiState.value.productName,
-                            price = _uiState.value.productPrice!!,
-                            imageUrl = publicUrl,
-                            inStock = true
+                            shopId      = _uiState.value.userId,
+                            shopName    = shop.name,
+                            area        = shop.area,
+                            productName = _uiState.value.product.productName,
+                            price       = _uiState.value.product.price,
+                            imageUrl    = publicUrl,
+                            inStock     = true
                         )
-                    )
+                    ) {
+                        filter { eq("id", productId) }
+                    }
                 } else {
                     supabase.postgrest["products"].insert(
                         ProductModel(
-                            id = "",
                             shopId = _uiState.value.userId,
-                            shopName = userDoc["shop_name"] ?: "",
-                            area = userDoc["area"] ?: "",
-                            name = _uiState.value.productName,
-                            price = _uiState.value.productPrice!!,
+                            shopName = shop.name,
+                            area = shop.area,
+                            productName = _uiState.value.product.productName,
+                            price = _uiState.value.product.price,
                             imageUrl = publicUrl,
                             inStock = true
                         )
@@ -204,10 +203,11 @@ class ProductActionViewModel : ViewModel() {
                 }
             } catch (e: Exception) {
                 updateErrorMessage(e.message ?: "Something went wrong")
+                return@launch
             } finally {
                 updateLoading(false)
-                _uiState.update { it.copy(isSuccess = true) }
             }
+            _uiState.update { it.copy(isSuccess = true) }
         }
     }
 }

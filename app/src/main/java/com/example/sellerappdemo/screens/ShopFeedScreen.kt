@@ -1,6 +1,5 @@
 package com.example.sellerappdemo.screens
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -120,8 +119,8 @@ fun ShopFeedScreen(
 
             // ── Social Profile Header ─────────────────────────────────────────
             ProfileHeader(
-                shopName = feedState.shopName,
-                shopArea = feedState.shopArea,
+                shopName = feedState.shop.name,
+                shopArea = feedState.shop.area,
                 productCount = feedState.products.size
             )
 
@@ -240,7 +239,6 @@ private fun ProfileHeader(
 }
 
 // ─── Stat Item ────────────────────────────────────────────────────────────────
-@SuppressLint("RememberInComposition")
 @Composable
 private fun StatItem(value: String, label: String) {
     Column(
@@ -370,7 +368,6 @@ private fun CollectionSection(
 }
 
 // ─── Product Card ─────────────────────────────────────────────────────────────
-@SuppressLint("RememberInComposition")
 @Composable
 private fun AtelierProductCard(
     product: ProductModel,
@@ -389,10 +386,10 @@ private fun AtelierProductCard(
                 spotColor = DOnSurface.copy(alpha = 0.04f)
             )
             .clickable(
-                interactionSource = MutableInteractionSource(),
+                interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 enabled = true,
-                onClickLabel = "Edit ${product.name}",
+                onClickLabel = "Edit ${product.productName}",
                 onClick = { navController.navigate(product) }
             ),
     ) {
@@ -400,7 +397,7 @@ private fun AtelierProductCard(
 
         AsyncImage(
             model = product.imageUrl,
-            contentDescription = product.name,
+            contentDescription = product.productName,
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(1f)
@@ -412,7 +409,7 @@ private fun AtelierProductCard(
         // Product info
         Column(modifier = Modifier.padding(12.dp)) {
             Text(
-                text = product.name,
+                text = product.productName,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 14.sp,
                 color = DOnSurface,

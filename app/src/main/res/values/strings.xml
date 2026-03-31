@@ -36,4 +36,6 @@
     <string name="login_subtitle">Seller App</string>
     <string name="label_name">Your Name</string>
     <string name="msg_first_time">New shop? Create account</string>
+    <string name="create_username">Create username</string>
+    <string name="phone">Phone</string>
 </resources>

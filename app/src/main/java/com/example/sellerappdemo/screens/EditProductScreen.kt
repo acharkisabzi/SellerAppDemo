@@ -56,7 +56,7 @@ fun EditProductScreen(
 
     LaunchedEffect(productModel) {
         viewModel.updateProduct(productModel)
-        viewModel.updateProductName(productModel.name)
+        viewModel.updateProductName(productModel.productName)
         viewModel.updateProductPrice(productModel.price)
         viewModel.initImageUri(productModel.imageUrl.toUri())
     }
@@ -201,7 +201,7 @@ fun EditProductScreen(
             ) {
                 // Product Name
                 AtelierFormField(
-                    value = state.productName,
+                    value = state.product.productName,
                     onValueChange = { viewModel.updateProductName(it) },
                     label = stringResource(R.string.label_product_name),
                     keyboardType = KeyboardType.Text
@@ -209,7 +209,7 @@ fun EditProductScreen(
 
                 // Price
                 AtelierFormField(
-                    value = if (state.productPrice == 0.0) "" else state.productPrice.toString(),
+                    value = if (state.product.price == 0.0) "" else state.product.price.toString(),
                     onValueChange = { viewModel.updateProductPrice(it.toDoubleOrNull() ?: 0.0) },
                     label = stringResource(R.string.label_price),
                     keyboardType = KeyboardType.Number

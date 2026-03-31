@@ -11,6 +11,6 @@ data class ProductActionState(
     val isLoading: Boolean = false,
     val errorMessage: String = "",
     val userId: String = "",
-    val imageUrl: String = "",
-    val isSuccess: Boolean = false
+    val isSuccess: Boolean = false,
+    val imageChanged: Boolean = false
 )

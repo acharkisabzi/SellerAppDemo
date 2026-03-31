@@ -24,7 +24,9 @@ import java.io.InputStream
 class ProductActionViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(ProductActionState())
     val uiState = _uiState.asStateFlow()
-    private val httpClient = OkHttpClient()
+    companion object {
+        private val httpClient = OkHttpClient()
+    }
 
     init {
         // Fetch the logged-in user ID immediately

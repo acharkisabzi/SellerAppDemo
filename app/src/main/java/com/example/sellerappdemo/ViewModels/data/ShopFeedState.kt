@@ -6,9 +6,7 @@ import com.example.sellerappdemo.models.ProductModel
 
 
 data class ShopFeedState(
-    var products: List<ProductModel> = emptyList(),
-    var isLoading: Boolean = true,
-    var shopName: String = "",
-    var shopArea: String = "",
-    val userId: String = "",
+    val products: List<ProductModel> = emptyList(),
+    val shop: UserModel = UserModel(),
+    val isLoading: Boolean = true,
 )

@@ -141,17 +141,27 @@ class ProductActionViewModel : ViewModel() {
                 }
 
                 // 2. Upload to Supabase Storage
-                val fileName = "${_uiState.value.userId}/${System.currentTimeMillis()}.jpg"
-                supabase.storage["products"].upload(
-                    path = fileName,
-                    data = imageBytes,
-                ) { upsert = update }
+                val publicUrl = if (_uiState.value.imageChanged) {
+                    // delete old image first
+                    val oldUrl = _uiState.value.product.imageUrl
+                    if (oldUrl.isNotEmpty()) {
+                        val oldPath = oldUrl.substringAfter("/products/")
+                        Log.d("StorageDelete", "Attempting to delete: '$oldPath'")
+                        try {
+                            supabase.storage["products"].delete(listOf(oldPath))
+                            Log.d("StorageDelete", "Delete success")
+                        } catch (e: Exception) {
+                            Log.e("StorageDelete", "Delete failed: ${e.message}")
+                        }
+                    }
 
-
-                // 3. Get public URL
-                val publicUrl = supabase.storage["products"].publicUrl(fileName)
-                updateImageUrl(publicUrl)
-
+                    // upload new image
+                    val fileName = "${_uiState.value.userId}/${System.currentTimeMillis()}.jpg"
+                    supabase.storage["products"].upload(path = fileName, data = imageBytes) { upsert = false }
+                    supabase.storage["products"].publicUrl(fileName)
+                } else {
+                    _uiState.value.product.imageUrl
+                }
                 // 4. Get shop info
                 val userDoc = supabase.postgrest["users"].select {
                     filter {

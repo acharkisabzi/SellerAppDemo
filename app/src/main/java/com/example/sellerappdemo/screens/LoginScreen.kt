@@ -60,6 +60,14 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel = viewMod
             )
             Spacer(modifier = Modifier.height(12.dp))
             OutlinedTextField(
+                value = authUiState.usernameInput,
+                onValueChange = { authViewModel.updateUserName(it) },
+                label = { Text(stringResource(R.string.create_username)) },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !authUiState.isLoading
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            OutlinedTextField(
                 value = state.areaInput,
                 onValueChange = { viewModel.updateArea(it) },
                 label = { Text(stringResource(R.string.label_area)) },

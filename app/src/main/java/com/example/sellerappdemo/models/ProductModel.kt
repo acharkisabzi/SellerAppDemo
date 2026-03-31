@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ProductModel(
-    val id: String = "",
+    val id: String? = "",
     @SerialName("shop_id") val shopId: String = "",
     @SerialName("shop_name") val shopName: String = "",
     val area: String = "",

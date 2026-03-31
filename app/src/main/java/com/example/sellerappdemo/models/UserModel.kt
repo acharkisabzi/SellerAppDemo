@@ -11,5 +11,5 @@ data class UserModel(
     val email: String = "",
     val phone: String = "",
     val area: String = "",
-    @SerialName("is_shop") val isShop: Boolean = false
+    @SerialName("is_shop") val isShop: Boolean = true
 )

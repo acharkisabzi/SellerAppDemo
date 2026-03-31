@@ -58,7 +58,7 @@ fun EditProductScreen(
         viewModel.updateProduct(productModel)
         viewModel.updateProductName(productModel.name)
         viewModel.updateProductPrice(productModel.price)
-        viewModel.updateImageUri(productModel.imageUrl.toUri())
+        viewModel.initImageUri(productModel.imageUrl.toUri())
     }
 
     Scaffold(containerColor = ADAtSurface, topBar = {

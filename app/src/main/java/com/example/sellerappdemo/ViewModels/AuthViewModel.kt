@@ -31,6 +31,9 @@ class AuthViewModel : ViewModel() {
     fun updateName(name: String) {
         _uiState.update { it.copy(nameInput = name) }
     }
+    fun updatePhone(phone: String) {
+        _uiState.update { it.copy(phoneInput = phone) }
+    }
 
     fun updateEmail(email: String) {
         _uiState.update { it.copy(emailInput = email) }
